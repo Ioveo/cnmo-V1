@@ -1,0 +1,21 @@
+{
+  "name": "nexus-audio",
+  "main": "worker.js",
+  "compatibility_date": "2024-09-23",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "SONIC_KV",
+      "id": "YOUR_KV_NAMESPACE_ID_HERE"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "SONIC_BUCKET",
+      "bucket_name": "sonic-media-bucket"
+    }
+  ]
+}

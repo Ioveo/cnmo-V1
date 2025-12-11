@@ -1,0 +1,7 @@
+{
+  "name": "NEXUS",
+  "description": "NEXUS Audio - 连接听觉与AI灵感的下一代音频工作站。",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
