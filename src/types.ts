@@ -7,11 +7,31 @@ export interface User {
   username: string;
   credits: number; // Remaining API calls
   createdAt: number;
+  role?: 'admin' | 'user';
 }
 
 export interface AuthResponse {
   user: User;
   token: string;
+}
+
+export interface SystemConfig {
+    geminiApiKey?: string;
+    smtpConfig?: {
+        host: string;
+        port: number;
+        user: string;
+        pass: string;
+        from: string;
+    };
+    navLabels?: {
+        home: string;
+        video: string;
+        music: string;
+        article: string;
+        gallery: string;
+        dashboard: string;
+    };
 }
 
 export interface SongSection {

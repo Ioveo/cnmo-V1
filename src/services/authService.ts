@@ -23,7 +23,7 @@ export const authService = {
         
         if (!res.ok) {
             const err = await res.json();
-            throw new Error(err.error || 'Registration failed');
+            throw new Error(err.error || '注册失败');
         }
         
         const data = await res.json();
@@ -40,7 +40,7 @@ export const authService = {
 
         if (!res.ok) {
             const err = await res.json();
-            throw new Error(err.error || 'Login failed');
+            throw new Error(err.error || '登录失败');
         }
 
         const data = await res.json();
@@ -69,6 +69,23 @@ export const authService = {
         } catch (e) {
             return null;
         }
+    },
+    
+    async updateProfile(username: string, password?: string): Promise<User> {
+        const res = await fetch(`${API_BASE}/api/auth/update`, {
+            method: 'POST',
+            headers: this.getHeaders(),
+            body: JSON.stringify({ username, password })
+        });
+        
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || '更新失败');
+        }
+        
+        const data = await res.json();
+        localStorage.setItem('nexus_user', JSON.stringify(data.user));
+        return data.user;
     },
 
     setSession(data: AuthResponse) {

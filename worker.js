@@ -52,12 +52,20 @@ async function getUser(userId, env) {
     return userData ? JSON.parse(userData) : null;
 }
 
+async function getSystemConfig(env) {
+    const raw = await env.SONIC_KV.get('system_config');
+    return raw ? JSON.parse(raw) : {};
+}
+
 // --- GEMINI PROXY (REST API) ---
 const GEMINI_MODEL = 'gemini-2.5-flash';
 
 async function callGeminiRest(env, payload, systemInstruction, schema) {
-    const apiKey = env.GEMINI_API_KEY;
-    if (!apiKey) throw new Error("Server API Key Not Configured in Cloudflare Dashboard");
+    // Priority: KV Config > Env Var
+    const config = await getSystemConfig(env);
+    const apiKey = config.geminiApiKey || env.GEMINI_API_KEY;
+    
+    if (!apiKey) throw new Error("Server API Key Not Configured");
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
     
@@ -108,6 +116,13 @@ export default {
       try {
         const debugHeaders = { ...corsHeaders, 'Content-Type': 'application/json' };
 
+        // --- ADMIN AUTH CHECK ---
+        const checkAdminAuth = () => {
+          const providedPass = (request.headers.get('x-admin-password') || '').trim();
+          let envPass = env.ADMIN_PASSWORD || "NEXUS_ADMIN";
+          if (providedPass !== envPass) throw new Error('Unauthorized');
+        };
+
         // --- AUTH ROUTES ---
 
         // 1. REGISTER
@@ -115,11 +130,11 @@ export default {
             const { email, password, username } = await request.json();
             
             // Basic validation
-            if (!email || !password || !username) throw new Error("Missing fields");
+            if (!email || !password || !username) throw new Error("请填写所有字段");
             
-            // Check if user exists (Simple implementation: key by email)
+            // ONE EMAIL ONE ACCOUNT
             const existing = await env.SONIC_KV.get(`user_email:${email}`);
-            if (existing) throw new Error("Email already registered");
+            if (existing) throw new Error("该邮箱已被注册");
             
             const userId = crypto.randomUUID();
             const passwordHash = await hashPassword(password);
@@ -152,15 +167,15 @@ export default {
             const { email, password } = await request.json();
             const userId = await env.SONIC_KV.get(`user_email:${email}`);
             
-            if (!userId) throw new Error("Invalid credentials");
+            if (!userId) throw new Error("邮箱或密码错误");
             
             const userRaw = await env.SONIC_KV.get(`user:${userId}`);
-            if (!userRaw) throw new Error("User data corrupted");
+            if (!userRaw) throw new Error("用户数据异常");
             
             const user = JSON.parse(userRaw);
             const inputHash = await hashPassword(password);
             
-            if (inputHash !== user.passwordHash) throw new Error("Invalid credentials");
+            if (inputHash !== user.passwordHash) throw new Error("邮箱或密码错误");
 
             // Create Session
             const token = generateToken();
@@ -181,6 +196,65 @@ export default {
             
             const { passwordHash: _, ...safeUser } = user;
             return new Response(JSON.stringify({ user: safeUser }), { headers: debugHeaders });
+        }
+        
+        // 4. UPDATE PROFILE
+        if (url.pathname === '/api/auth/update' && request.method === 'POST') {
+            const userId = await verifyUserToken(request, env);
+            if (!userId) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: debugHeaders });
+            
+            const { username, password } = await request.json();
+            const user = await getUser(userId, env);
+            if (!user) throw new Error("User not found");
+            
+            if (username) user.username = username;
+            if (password) {
+                user.passwordHash = await hashPassword(password);
+            }
+            
+            await env.SONIC_KV.put(`user:${userId}`, JSON.stringify(user));
+            const { passwordHash: _, ...safeUser } = user;
+            return new Response(JSON.stringify({ user: safeUser }), { headers: debugHeaders });
+        }
+
+        // --- USER MANAGEMENT (ADMIN) ---
+        
+        if (url.pathname === '/api/users' && request.method === 'GET') {
+            checkAdminAuth();
+            const list = await env.SONIC_KV.list({ prefix: 'user:' });
+            const users = [];
+            for (const key of list.keys) {
+                const uRaw = await env.SONIC_KV.get(key.name);
+                if (uRaw) {
+                    const u = JSON.parse(uRaw);
+                    const { passwordHash, ...safe } = u;
+                    users.push(safe);
+                }
+            }
+            return new Response(JSON.stringify({ users }), { headers: debugHeaders });
+        }
+
+        if (url.pathname.match(/\/api\/users\/([^/]+)$/) && request.method === 'DELETE') {
+             checkAdminAuth();
+             const userId = url.pathname.split('/')[3];
+             const user = await getUser(userId, env);
+             if (user) {
+                 await env.SONIC_KV.delete(`user:${userId}`);
+                 await env.SONIC_KV.delete(`user_email:${user.email}`);
+             }
+             return new Response(JSON.stringify({ status: 'ok' }), { headers: debugHeaders });
+        }
+        
+        if (url.pathname.match(/\/api\/users\/([^/]+)\/credits$/) && request.method === 'POST') {
+             checkAdminAuth();
+             const userId = url.pathname.split('/')[3];
+             const { amount } = await request.json();
+             const user = await getUser(userId, env);
+             if (user) {
+                 user.credits = (user.credits || 0) + amount;
+                 await env.SONIC_KV.put(`user:${userId}`, JSON.stringify(user));
+             }
+             return new Response(JSON.stringify({ status: 'ok' }), { headers: debugHeaders });
         }
 
 
@@ -321,20 +395,29 @@ export default {
         }
 
 
-        // ... EXISTING ROUTES ...
+        // --- SYSTEM CONFIG (KV) ---
         
-        // ADMIN AUTH CHECK
-        const checkAdminAuth = () => {
-          const providedPass = (request.headers.get('x-admin-password') || '').trim();
-          let envPass = env.ADMIN_PASSWORD || "NEXUS_ADMIN";
-          if (providedPass !== envPass) throw new Error('Unauthorized');
-        };
-
-        // G. SYSTEM CONFIG
-        if (url.pathname === '/api/system-config' && request.method === 'GET') {
-          return new Response(JSON.stringify({ geminiApiKey: null }), { headers: debugHeaders });
+        if (url.pathname === '/api/system-config') {
+             if (request.method === 'GET') {
+                 checkAdminAuth();
+                 const raw = await env.SONIC_KV.get('system_config');
+                 return new Response(raw || JSON.stringify({}), { headers: debugHeaders });
+             }
+             if (request.method === 'POST') {
+                 checkAdminAuth();
+                 const body = await request.json();
+                 // Merge with existing to avoid overwriting unrelated fields if any
+                 const existingRaw = await env.SONIC_KV.get('system_config');
+                 const existing = existingRaw ? JSON.parse(existingRaw) : {};
+                 const newConfig = { ...existing, ...body };
+                 await env.SONIC_KV.put('system_config', JSON.stringify(newConfig));
+                 return new Response(JSON.stringify({ status: 'ok' }), { headers: debugHeaders });
+             }
         }
 
+
+        // ... EXISTING ROUTES ...
+        
         if (url.pathname === '/api/site-config') {
             if (request.method === 'GET') {
                 const val = await env.SONIC_KV.get('site_config');

@@ -1,6 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
-import { GoogleGenAI } from "@google/genai";
+import React from 'react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -9,49 +8,6 @@ interface SettingsModalProps {
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onResetDemoData }) => {
-  const [apiKey, setApiKey] = useState('');
-  const [status, setStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
-  const [msg, setMsg] = useState('');
-
-  useEffect(() => {
-    setApiKey(localStorage.getItem('gemini_api_key') || '');
-    setStatus('idle');
-    setMsg('');
-  }, [isOpen]);
-
-  const handleTestConnection = async () => {
-    if (!apiKey.trim()) {
-        setStatus('error');
-        setMsg("请输入 API Key");
-        return;
-    }
-
-    setStatus('testing');
-    try {
-        const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
-        // Try a minimal generation to test the key
-        await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: { parts: [{ text: 'Ping' }] },
-        });
-        setStatus('success');
-        setMsg("连接成功！API Key 有效。");
-    } catch (e: any) {
-        setStatus('error');
-        setMsg("连接失败: " + (e.message || "无效的 Key 或网络错误"));
-    }
-  };
-
-  const handleSave = () => {
-    if (apiKey.trim()) {
-        localStorage.setItem('gemini_api_key', apiKey.trim());
-        // Reload to ensure services pick up the new key if it changed
-        window.location.reload();
-    } else {
-        onClose();
-    }
-  };
-
   const handleReset = () => {
       if (confirm("确定要重置并加载演示数据吗？这将覆盖当前的某些本地状态 (不会删除云端文件)。")) {
           onResetDemoData();
@@ -77,47 +33,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onResetD
         </h3>
 
         <div className="space-y-6">
-            <div>
-                <label className="block text-xs font-mono text-slate-500 uppercase tracking-widest mb-2">
-                    Gemini API Key
-                </label>
-                <div className="relative">
-                    <input 
-                        type="password" 
-                        value={apiKey}
-                        onChange={(e) => { setApiKey(e.target.value); setStatus('idle'); }}
-                        placeholder="AIzaSy..."
-                        className="w-full bg-black border border-white/10 rounded-lg p-3 text-sm text-white focus:border-lime-500 focus:outline-none font-mono pr-20"
-                    />
-                    <button 
-                        onClick={handleTestConnection}
-                        disabled={status === 'testing'}
-                        className="absolute right-1 top-1 bottom-1 px-3 bg-white/10 hover:bg-white/20 text-xs text-white rounded font-bold transition-colors disabled:opacity-50"
-                    >
-                        {status === 'testing' ? '测试中...' : '测试连接'}
-                    </button>
-                </div>
-                {status !== 'idle' && (
-                    <p className={`text-xs mt-2 flex items-center gap-1 ${status === 'success' ? 'text-lime-500' : 'text-red-500'}`}>
-                        {status === 'success' ? (
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                        ) : (
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
-                        )}
-                        {msg}
-                    </p>
-                )}
-                <p className="text-[10px] text-slate-500 mt-2">
-                    NEXUS 需要 Google Gemini API 支持以进行音频分析和创意生成。Key 仅保存在您的本地浏览器中。
+            <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                <p className="text-sm text-slate-300">
+                    NEXUS AI 功能现已由后端安全托管。请在 **管理员面板 > 系统配置** 中设置 Gemini API Key 和邮件服务。
                 </p>
             </div>
-            
-            <button 
-                onClick={handleSave}
-                className="w-full py-3 bg-white hover:bg-slate-200 text-black font-bold uppercase tracking-wider rounded-xl transition-all shadow-lg mt-2"
-            >
-                保存配置并重启
-            </button>
 
             <div className="pt-4 border-t border-white/10">
                 <button 

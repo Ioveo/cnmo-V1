@@ -403,6 +403,7 @@ function App() {
                 onUpdateGallery={d => updateData('gallery', d)}
                 onUpdateCategories={d => updateData('categories', d)}
                 onUpdatePlaylists={d => updateData('playlists', d)}
+                onRefreshUser={setCurrentUser}
                 onNavigate={(v) => setView(v as any)}
                 onOpenSettings={() => setIsSettingsOpen(true)}
                 onAnalyze={(file) => {

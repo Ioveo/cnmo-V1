@@ -93,7 +93,6 @@ export const FileSelectorModal = ({ isOpen, onClose, onSelect, filter }: { isOpe
         if (isOpen) {
             setLoading(true);
             storageService.listFiles().then(data => {
-                // Filter by type roughly based on extension
                 const filtered = data.filter((f: any) => {
                     const ext = f.key.split('.').pop()?.toLowerCase();
                     if (filter === 'video') return ['mp4', 'webm', 'mov'].includes(ext);
@@ -159,7 +158,7 @@ export const Navbar = ({ onNavigate, onAdmin, onSettings, currentView, transpare
     return (
         <>
             <nav className={`fixed top-0 left-0 w-full z-[100] flex justify-between items-center px-4 md:px-8 py-4 transition-all duration-300 ${transparent ? 'bg-transparent border-transparent' : 'bg-[#050505]/80 backdrop-blur-md border-b border-white/5'}`}>
-                <div onClick={() => handleNav('home')} className="cursor-pointer group flex items-center gap-2">
+                <div onClick={() => handleNav('home')} className="cursor-pointer group flex items-center gap-2 shrink-0">
                      <div className="w-6 h-6 bg-acid rounded-sm shadow-[0_0_10px_#ccff00]"></div>
                      <div className="font-display font-black text-2xl tracking-tighter text-white leading-none drop-shadow-md">NEXUS</div>
                 </div>
@@ -179,15 +178,17 @@ export const Navbar = ({ onNavigate, onAdmin, onSettings, currentView, transpare
                     ))}
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 shrink-0">
                     <div className="hidden lg:block">
                         <button onClick={() => handleNav('dashboard')} className="flex items-center gap-1 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-acid px-3 py-2">
                             {labels.dashboard}
                         </button>
                     </div>
                     
-                    {/* User Control Passed from Parent */}
-                    {userControl}
+                    {/* User Control Passed from Parent (Now handled in flex container) */}
+                    <div className="flex items-center">
+                         {userControl}
+                    </div>
 
                     <div className="h-4 w-px bg-white/10 hidden md:block"></div>
 
@@ -222,8 +223,6 @@ export const Navbar = ({ onNavigate, onAdmin, onSettings, currentView, transpare
     );
 };
 
-// --- GLOBAL PLAYER ---
-
 export const GlobalPlayer = ({ 
     track, 
     playingId, 
@@ -236,19 +235,7 @@ export const GlobalPlayer = ({
     onClose,
     onNext,
     onPrev
-}: { 
-    track: GalleryTrack | undefined, 
-    playingId: string | null, 
-    currentTime: number, 
-    duration: number,
-    mode: 'loop' | 'single' | 'shuffle',
-    onTogglePlay: () => void,
-    onToggleMode: () => void,
-    onSeek: (e: React.MouseEvent<HTMLDivElement>) => void,
-    onClose: (e: React.MouseEvent) => void,
-    onNext: () => void,
-    onPrev: () => void
-}) => {
+}: any) => {
     if (!playingId) return null;
 
     return (
@@ -266,31 +253,18 @@ export const GlobalPlayer = ({
                         </div>
                     </div>
 
-                    {/* CENTER: Controls (Compact on Mobile) */}
+                    {/* CENTER: Controls */}
                     <div className="flex items-center gap-3 md:gap-6 z-20 md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2">
-                        {/* Desktop Only Controls */}
                         <div className="hidden md:flex items-center gap-6">
                             <button onClick={onToggleMode} className="text-slate-500 hover:text-acid transition-colors p-2" title="切换模式">
-                                {mode === 'loop' && (
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                                )}
-                                {mode === 'single' && (
-                                    <div className="relative">
-                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                                        <span className="absolute -top-1 -right-1 text-[8px] font-bold bg-acid text-black rounded-full w-3 h-3 flex items-center justify-center">1</span>
-                                    </div>
-                                )}
-                                {mode === 'shuffle' && (
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-                                )}
+                                {mode === 'loop' && <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>}
+                                {mode === 'single' && <div className="relative"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg><span className="absolute -top-1 -right-1 text-[8px] font-bold bg-acid text-black rounded-full w-3 h-3 flex items-center justify-center">1</span></div>}
+                                {mode === 'shuffle' && <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>}
                             </button>
-
                             <button onClick={onPrev} className="text-slate-400 hover:text-white hover:scale-110 transition-all p-2" title="上一首">
                                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
                             </button>
                         </div>
-
-                        {/* Play Button (Visible on Mobile & Desktop) */}
                         <button 
                             onClick={onTogglePlay} 
                             className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white hover:bg-acid text-black flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_20px_#ccff00] hover:scale-105 transition-all"
@@ -304,11 +278,9 @@ export const GlobalPlayer = ({
                                 <svg className="w-4 h-4 md:w-5 md:h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                             )}
                         </button>
-
                         <button onClick={onNext} className="md:hidden text-slate-400 hover:text-white p-2">
                              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
                         </button>
-
                         <button onClick={onNext} className="hidden md:block text-slate-400 hover:text-white hover:scale-110 transition-all p-2" title="下一首">
                             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
                         </button>
@@ -325,12 +297,8 @@ export const GlobalPlayer = ({
                         </button>
                     </div>
                     
-                    {/* Mobile Close Button */}
-                    <button onClick={onClose} className="md:hidden p-2 text-slate-500 hover:text-white">
-                        ✕
-                    </button>
+                    <button onClick={onClose} className="md:hidden p-2 text-slate-500 hover:text-white">✕</button>
 
-                    {/* BOTTOM PROGRESS BAR */}
                     <div className="absolute bottom-0 left-0 w-full h-[3px] bg-white/5 cursor-pointer group-hover:h-[5px] transition-all z-0" onClick={onSeek}>
                         <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-500 to-acid transition-all duration-100 ease-linear shadow-[0_0_10px_#ccff00]" style={{ width: `${(currentTime/duration)*100}%` }}></div>
                     </div>

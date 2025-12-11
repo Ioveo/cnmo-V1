@@ -12,7 +12,7 @@ async function callAIProxy(endpoint: string, payload: any): Promise<any> {
     
     // Check if logged in
     if (!token) {
-        throw new Error("请先登录以使用 AI 功能 (Please login to use AI features)");
+        throw new Error("请先登录以使用 AI 功能");
     }
 
     const res = await fetch(`/api/ai/${endpoint}`, {
@@ -22,16 +22,17 @@ async function callAIProxy(endpoint: string, payload: any): Promise<any> {
     });
 
     if (res.status === 401) {
+        authService.logout();
         throw new Error("登录已过期，请重新登录");
     }
     
     if (res.status === 402 || res.status === 403) {
-        throw new Error("点数不足！每个用户仅限 5 次 AI 生成。 (Insufficient credits. Limit 5 per user.)");
+        throw new Error("点数不足！每个用户仅限 5 次 AI 生成。(请联系管理员充值)");
     }
 
     if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || "AI Service Error");
+        throw new Error(err.error || "AI 服务异常");
     }
 
     return await res.json();
@@ -53,10 +54,6 @@ export const generateInstantRemix = async (originalData: AudioAnalysisResult): P
     return await callAIProxy('generate-remix', { originalData });
 };
 
-// This one is cheap/internal, maybe allow client side or proxy? 
-// For consistency, proxy it, but maybe don't deduct credits? 
-// For now, let's assume section lyrics are part of the 'generate' flows usually.
-// If standalone, we proxy it.
 export const generateSectionLyrics = async (genre: string, mood: string[], sectionName: string, sectionDesc: string): Promise<string> => {
     const res = await callAIProxy('generate-lyrics', { genre, mood, sectionName, sectionDesc });
     return res.text;
