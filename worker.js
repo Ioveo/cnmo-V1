@@ -1,7 +1,3 @@
-<change>
-    <file>worker.js</file>
-    <description>Add missing /api/verify-auth endpoint for admin login verification</description>
-    <content><![CDATA[
 // worker.js
 
 /**
@@ -587,5 +583,3 @@ export default {
     }
   },
 };
-]]></content>
-</change>
