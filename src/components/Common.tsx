@@ -147,7 +147,7 @@ export const FileSelectorModal = ({ isOpen, onClose, onSelect, filter }: { isOpe
     );
 };
 
-export const Navbar = ({ onNavigate, onAdmin, onSettings, currentView, transparent = false, navLabels }: any) => {
+export const Navbar = ({ onNavigate, onAdmin, onSettings, currentView, transparent = false, navLabels, userControl }: any) => {
     const labels = navLabels || { home: '主控台', video: '影视中心', music: '精选音乐', article: '深度专栏', gallery: '视觉画廊', dashboard: '工坊' };
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     
@@ -165,7 +165,7 @@ export const Navbar = ({ onNavigate, onAdmin, onSettings, currentView, transpare
                 </div>
                 
                 {/* Desktop Menu */}
-                <div className="hidden lg:flex items-center gap-1">
+                <div className="hidden xl:flex items-center gap-1">
                     {[
                         {id: 'home', label: labels.home},
                         {id: 'video', label: labels.video},
@@ -179,18 +179,23 @@ export const Navbar = ({ onNavigate, onAdmin, onSettings, currentView, transpare
                     ))}
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <div className="hidden xl:block mr-2">
-                        {/* Placeholder for Dropdown logic reused or simplified */}
-                        <button onClick={() => handleNav('dashboard')} className="flex items-center gap-1 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-acid px-4 py-2">
+                <div className="flex items-center gap-3">
+                    <div className="hidden lg:block">
+                        <button onClick={() => handleNav('dashboard')} className="flex items-center gap-1 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-acid px-3 py-2">
                             {labels.dashboard}
                         </button>
                     </div>
-                    <button onClick={onAdmin} className="w-8 h-8 flex items-center justify-center border border-white/10 hover:border-acid/50 text-slate-400 hover:text-acid transition-colors bg-black/50 backdrop-blur rounded">⚙</button>
-                    <button onClick={onSettings} className="w-8 h-8 flex items-center justify-center border border-white/10 hover:border-acid/50 text-slate-400 hover:text-acid transition-colors bg-black/50 backdrop-blur rounded">🔧</button>
+                    
+                    {/* User Control Passed from Parent */}
+                    {userControl}
+
+                    <div className="h-4 w-px bg-white/10 hidden md:block"></div>
+
+                    <button onClick={onAdmin} className="w-8 h-8 flex items-center justify-center border border-white/10 hover:border-acid/50 text-slate-400 hover:text-acid transition-colors bg-black/50 backdrop-blur rounded" title="管理员面板">⚙</button>
+                    <button onClick={onSettings} className="w-8 h-8 flex items-center justify-center border border-white/10 hover:border-acid/50 text-slate-400 hover:text-acid transition-colors bg-black/50 backdrop-blur rounded" title="设置">🔧</button>
                     
                     {/* Mobile Menu Toggle */}
-                    <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="lg:hidden w-8 h-8 flex items-center justify-center border border-white/10 text-white bg-black/50 backdrop-blur rounded">
+                    <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="xl:hidden w-8 h-8 flex items-center justify-center border border-white/10 text-white bg-black/50 backdrop-blur rounded">
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} /></svg>
                     </button>
                 </div>
@@ -198,7 +203,7 @@ export const Navbar = ({ onNavigate, onAdmin, onSettings, currentView, transpare
 
             {/* Mobile Fullscreen Menu */}
             {mobileMenuOpen && (
-                <div className="fixed inset-0 z-[90] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center gap-6 animate-fade-in lg:hidden">
+                <div className="fixed inset-0 z-[90] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center gap-6 animate-fade-in xl:hidden">
                     {[
                         {id: 'home', label: labels.home},
                         {id: 'video', label: labels.video},

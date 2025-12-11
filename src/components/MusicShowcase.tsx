@@ -583,10 +583,8 @@ export const MusicShowcase: React.FC<MusicShowcaseProps> = (props) => {
                             currentView={props.currentView} 
                             transparent={true} 
                             navLabels={props.siteConfig?.navLabels}
+                            userControl={<UserMenu user={props.currentUser} onOpenAuth={props.onLoginReq} onLogout={props.onLogout} />}
                         />
-                     </div>
-                     <div className="absolute top-4 right-4 z-[101] pointer-events-auto flex gap-2">
-                        <UserMenu user={props.currentUser} onOpenAuth={props.onLoginReq} onLogout={props.onLogout} />
                      </div>
                 </div>
             )}

@@ -63,7 +63,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                         NEXUS <span className="text-transparent bg-clip-text bg-gradient-to-r from-lime-400 to-cyan-400">ID</span>
                     </h2>
                     <p className="text-xs font-mono text-slate-500 uppercase tracking-widest">
-                        {mode === 'login' ? 'Access Terminal' : 'New Identity Registration'}
+                        {mode === 'login' ? 'Access Terminal / 访问终端' : 'Registration / 新用户注册'}
                     </p>
                 </div>
 
@@ -72,31 +72,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                         onClick={() => setMode('login')} 
                         className={`flex-1 py-2 text-xs font-bold uppercase rounded-full transition-all ${mode === 'login' ? 'bg-lime-500 text-black shadow-lg' : 'text-slate-500 hover:text-white'}`}
                     >
-                        登录 Login
+                        登录
                     </button>
                     <button 
                         onClick={() => setMode('register')} 
                         className={`flex-1 py-2 text-xs font-bold uppercase rounded-full transition-all ${mode === 'register' ? 'bg-cyan-500 text-black shadow-lg' : 'text-slate-500 hover:text-white'}`}
                     >
-                        注册 Register
+                        注册
                     </button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
                     {mode === 'register' && (
                         <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-slate-500 uppercase ml-2">Username</label>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase ml-2">用户名 (Username)</label>
                             <input 
                                 type="text" 
                                 value={username} 
                                 onChange={e => setUsername(e.target.value)} 
                                 className="w-full bg-black/50 border border-white/10 focus:border-cyan-500 rounded-xl px-4 py-3 text-white outline-none transition-colors"
-                                placeholder="选择代号..."
+                                placeholder="设置您的代号..."
                             />
                         </div>
                     )}
                     <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase ml-2">Email</label>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase ml-2">电子邮箱 (Email)</label>
                         <input 
                             type="email" 
                             value={email} 
@@ -106,7 +106,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                         />
                     </div>
                     <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase ml-2">Password</label>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase ml-2">密码 (Password)</label>
                         <input 
                             type="password" 
                             value={password} 
@@ -126,7 +126,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                         disabled={loading}
                         className={`w-full py-4 mt-4 rounded-xl font-bold uppercase tracking-widest transition-all shadow-lg ${mode === 'login' ? 'bg-lime-500 hover:bg-lime-400 text-black' : 'bg-cyan-500 hover:bg-cyan-400 text-black'} disabled:opacity-50`}
                     >
-                        {loading ? 'Processing...' : (mode === 'login' ? 'Enter System' : 'Initialize')}
+                        {loading ? '处理中...' : (mode === 'login' ? '进入系统' : '初始化账号')}
                     </button>
                     
                     {mode === 'register' && (
@@ -147,10 +147,10 @@ export const UserMenu: React.FC<{ user: User | null, onOpenAuth: () => void, onL
         return (
             <button 
                 onClick={onOpenAuth}
-                className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full transition-all group"
+                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full transition-all group"
             >
                 <span className="w-2 h-2 rounded-full bg-slate-500 group-hover:bg-lime-500 transition-colors"></span>
-                <span className="text-xs font-bold text-slate-300 group-hover:text-white uppercase">Login</span>
+                <span className="text-xs font-bold text-slate-300 group-hover:text-white uppercase whitespace-nowrap">登录 / 注册</span>
             </button>
         );
     }
@@ -166,7 +166,7 @@ export const UserMenu: React.FC<{ user: User | null, onOpenAuth: () => void, onL
                 </div>
                 <div className="hidden md:flex flex-col items-start leading-none">
                     <span className="text-[10px] font-bold text-white max-w-[80px] truncate">{user.username}</span>
-                    <span className="text-[9px] font-mono text-lime-500">{user.credits} Credits</span>
+                    <span className="text-[9px] font-mono text-lime-500">{user.credits} 点数</span>
                 </div>
             </button>
 
@@ -186,10 +186,10 @@ export const UserMenu: React.FC<{ user: User | null, onOpenAuth: () => void, onL
 
                         <div className="space-y-3 mb-4">
                             <div className="bg-white/5 p-3 rounded-xl border border-white/5">
-                                <span className="text-[10px] text-slate-500 uppercase tracking-widest block mb-1">AI Credits</span>
+                                <span className="text-[10px] text-slate-500 uppercase tracking-widest block mb-1">AI 额度</span>
                                 <div className="flex items-end justify-between">
                                     <span className="text-2xl font-display font-bold text-lime-400">{user.credits}</span>
-                                    <span className="text-[10px] text-slate-400 mb-1">Remaining</span>
+                                    <span className="text-[10px] text-slate-400 mb-1">剩余点数</span>
                                 </div>
                                 <div className="w-full h-1 bg-white/10 rounded-full mt-2 overflow-hidden">
                                     <div className="h-full bg-lime-500" style={{ width: `${Math.min((user.credits / 5) * 100, 100)}%` }}></div>
@@ -198,7 +198,7 @@ export const UserMenu: React.FC<{ user: User | null, onOpenAuth: () => void, onL
                         </div>
 
                         <button onClick={() => { onLogout(); setIsOpen(false); }} className="w-full py-2 text-xs font-bold text-red-400 hover:text-white hover:bg-red-500/20 rounded-lg transition-colors uppercase tracking-widest">
-                            Log Out
+                            退出登录
                         </button>
                     </div>
                 </>
