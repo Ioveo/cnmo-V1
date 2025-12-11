@@ -203,7 +203,7 @@ export default {
             return new Response(JSON.stringify({ user: safeUser }), { headers: debugHeaders });
         }
         
-        // 4. UPDATE PROFILE
+        // 4. UPDATE PROFILE (USER SELF)
         if (url.pathname === '/api/auth/update' && request.method === 'POST') {
             const userId = await verifyUserToken(request, env);
             if (!userId) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: debugHeaders });
@@ -237,6 +237,34 @@ export default {
                 }
             }
             return new Response(JSON.stringify({ users }), { headers: debugHeaders });
+        }
+
+        // ADMIN: UPDATE USER (Username, Email, Password)
+        if (url.pathname.match(/\/api\/users\/([^/]+)$/) && request.method === 'PUT') {
+             checkAdminAuth();
+             const userId = url.pathname.split('/')[3];
+             const { username, email, password } = await request.json();
+             
+             const user = await getUser(userId, env);
+             if (!user) throw new Error("User not found");
+
+             // Handle Email Change (Complex due to index)
+             if (email && email !== user.email) {
+                 const existing = await env.SONIC_KV.get(`user_email:${email}`);
+                 if (existing) throw new Error("Email already in use");
+                 
+                 // Delete old index
+                 await env.SONIC_KV.delete(`user_email:${user.email}`);
+                 // Create new index
+                 await env.SONIC_KV.put(`user_email:${email}`, userId);
+                 user.email = email;
+             }
+
+             if (username) user.username = username;
+             if (password) user.passwordHash = await hashPassword(password);
+
+             await env.SONIC_KV.put(`user:${userId}`, JSON.stringify(user));
+             return new Response(JSON.stringify({ status: 'ok', user }), { headers: debugHeaders });
         }
 
         if (url.pathname.match(/\/api\/users\/([^/]+)$/) && request.method === 'DELETE') {
