@@ -1,4 +1,7 @@
-
+<change>
+    <file>worker.js</file>
+    <description>Add missing /api/verify-auth endpoint for admin login verification</description>
+    <content><![CDATA[
 // worker.js
 
 /**
@@ -124,6 +127,12 @@ export default {
         };
 
         // --- AUTH ROUTES ---
+
+        // 0. VERIFY ADMIN AUTH (Fix for Login)
+        if (url.pathname === '/api/verify-auth' && request.method === 'POST') {
+            checkAdminAuth();
+            return new Response(JSON.stringify({ status: 'ok' }), { headers: debugHeaders });
+        }
 
         // 1. REGISTER
         if (url.pathname === '/api/auth/register' && request.method === 'POST') {
@@ -578,3 +587,5 @@ export default {
     }
   },
 };
+]]></content>
+</change>
