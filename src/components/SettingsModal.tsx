@@ -35,7 +35,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onResetD
         <div className="space-y-6">
             <div className="bg-white/5 p-4 rounded-xl border border-white/5">
                 <p className="text-sm text-slate-300">
-                    NEXUS AI 功能现已由后端安全托管。请在 **管理员面板 > 系统配置** 中设置 Gemini API Key 和邮件服务。
+                    NEXUS AI 功能现已由后端安全托管。请在 **管理员面板 &gt; 系统配置** 中设置 Gemini API Key 和邮件服务。
                 </p>
             </div>
 
