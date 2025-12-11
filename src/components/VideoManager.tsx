@@ -1,4 +1,3 @@
-
 // src/components/VideoManager.tsx
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -365,9 +364,20 @@ export const VideoManager: React.FC<VideoManagerProps> = ({ videos, categories, 
                       </div>
 
                       {state.sourceType === 'local' ? (
-                        <div className="flex flex-col md:flex-row gap-4 items-center bg-black/30 p-4 rounded-xl border border-white/10">
-                            <input type="file" ref={videoInputRef} accept="video/*" onChange={handleVideoFileChange} className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-orange-500/10 file:text-orange-500 hover:file:bg-orange-500/20"/>
-                            <button onClick={() => setShowFileSelector({ show: true, type: 'video' })} className="w-full md:w-auto text-xs font-bold text-slate-300 hover:text-white whitespace-nowrap">从库选择</button>
+                        <div className="flex flex-col gap-2 bg-black/30 p-4 rounded-xl border border-white/10">
+                            {/* Selected Cloud File Feedback */}
+                            {!videoFile && state.videoUrl && (
+                                <div className="flex items-center gap-2 text-lime-400 text-xs font-mono p-2 bg-lime-500/10 rounded border border-lime-500/20 mb-2">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-lime-500 animate-pulse"></span>
+                                    已选择云端资源: {state.videoUrl.split('/').pop()}
+                                    <button onClick={() => setState(p => ({...p, videoUrl: ''}))} className="ml-auto text-slate-500 hover:text-white">✕</button>
+                                </div>
+                            )}
+
+                            <div className="flex flex-col md:flex-row gap-4 items-center">
+                                <input type="file" ref={videoInputRef} accept="video/*" onChange={handleVideoFileChange} className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-orange-500/10 file:text-orange-500 hover:file:bg-orange-500/20"/>
+                                <button onClick={() => setShowFileSelector({ show: true, type: 'video' })} className="w-full md:w-auto text-xs font-bold text-slate-300 hover:text-white whitespace-nowrap">从库选择</button>
+                            </div>
                         </div>
                       ) : (
                           <input type="text" value={state.videoUrl} onChange={e => setState({...state, videoUrl: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 rounded-xl text-white font-mono text-xs focus:border-orange-500 outline-none" placeholder="https://..." />
@@ -386,16 +396,25 @@ export const VideoManager: React.FC<VideoManagerProps> = ({ videos, categories, 
                       <p className="text-[9px] text-slate-500 -mt-2">若上传，将替换视频原声。适用于“无声视频 + 高音质音频”的合成播放。</p>
                       
                       {state.audioSourceType === 'local' ? (
-                          <div className="flex flex-col md:flex-row gap-4 items-center bg-black/30 p-4 rounded-xl border border-white/10">
-                                <input 
-                                    type="file" 
-                                    ref={audioInputRef} 
-                                    accept="audio/*" 
-                                    onChange={e => e.target.files && setAudioFile(e.target.files[0])} 
-                                    className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-cyan-500/10 file:text-cyan-500 hover:file:bg-cyan-500/20"
-                                />
-                                <div className="hidden md:block w-px h-8 bg-white/10"></div>
-                                <button onClick={() => setShowFileSelector({ show: true, type: 'audio' })} className="w-full md:w-auto text-xs font-bold text-slate-300 hover:text-white whitespace-nowrap">从库选择</button>
+                          <div className="flex flex-col gap-2 bg-black/30 p-4 rounded-xl border border-white/10">
+                                {!audioFile && state.audioUrl && (
+                                    <div className="flex items-center gap-2 text-lime-400 text-xs font-mono p-2 bg-lime-500/10 rounded border border-lime-500/20 mb-2">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-lime-500 animate-pulse"></span>
+                                        已选择云端资源: {state.audioUrl.split('/').pop()}
+                                        <button onClick={() => setState(p => ({...p, audioUrl: ''}))} className="ml-auto text-slate-500 hover:text-white">✕</button>
+                                    </div>
+                                )}
+                                <div className="flex flex-col md:flex-row gap-4 items-center">
+                                    <input 
+                                        type="file" 
+                                        ref={audioInputRef} 
+                                        accept="audio/*" 
+                                        onChange={e => e.target.files && setAudioFile(e.target.files[0])} 
+                                        className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-cyan-500/10 file:text-cyan-500 hover:file:bg-cyan-500/20"
+                                    />
+                                    <div className="hidden md:block w-px h-8 bg-white/10"></div>
+                                    <button onClick={() => setShowFileSelector({ show: true, type: 'audio' })} className="w-full md:w-auto text-xs font-bold text-slate-300 hover:text-white whitespace-nowrap">从库选择</button>
+                                </div>
                           </div>
                       ) : (
                           <input type="text" value={state.audioUrl} onChange={e => setState({...state, audioUrl: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 rounded-xl text-white font-mono text-xs focus:border-cyan-500 outline-none" placeholder="输入音频链接 (支持长链接/Token/GoogleVideo...)" />
