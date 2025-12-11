@@ -1,3 +1,7 @@
+<change>
+    <file>src/components/MusicShowcase.tsx</file>
+    <description>Restore Audio Workshop and Creative Lab buttons in Home view</description>
+    <content><![CDATA[
 // src/components/MusicShowcase.tsx
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
@@ -699,9 +703,34 @@ export const MusicShowcase: React.FC<MusicShowcaseProps> = (props) => {
                         <p className="text-sm md:text-xl text-slate-300 max-w-2xl mx-auto mb-8 md:mb-12 font-light">
                             解析音频结构、生成 Suno 提示词、探索音乐 DNA。
                         </p>
-                        <button onClick={() => { if(!props.currentUser) { props.onLoginReq(); return; } props.onAnalyze(null as any); }} className="px-8 md:px-12 py-4 md:py-5 bg-white text-black font-bold text-sm md:text-lg rounded-full hover:bg-acid hover:scale-105 transition-all shadow-xl uppercase tracking-widest">
-                            开始分析 (需上传文件)
-                        </button>
+                        <div className="flex flex-col md:flex-row gap-6 justify-center">
+                            <button 
+                                onClick={() => { 
+                                    if(!props.currentUser) { props.onLoginReq(); return; } 
+                                    props.onNavigate('dashboard'); 
+                                }} 
+                                className="group relative px-8 py-4 bg-white text-black font-bold text-sm md:text-base uppercase tracking-widest rounded-full hover:scale-105 transition-all shadow-[0_0_30px_rgba(255,255,255,0.3)] overflow-hidden"
+                            >
+                                <span className="relative z-10 flex items-center gap-2">
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                                    音频工坊 (Audio Studio)
+                                </span>
+                                <div className="absolute inset-0 bg-lime-400 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300 ease-out z-0"></div>
+                            </button>
+
+                            <button 
+                                onClick={() => { 
+                                    if(!props.currentUser) { props.onLoginReq(); return; } 
+                                    props.onNavigate('custom'); 
+                                }} 
+                                className="group relative px-8 py-4 bg-black/50 border border-white/20 text-white font-bold text-sm md:text-base uppercase tracking-widest rounded-full hover:scale-105 transition-all hover:border-pink-500 hover:text-pink-400 backdrop-blur-md overflow-hidden"
+                            >
+                                <span className="relative z-10 flex items-center gap-2">
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                    创意实验室 (Creative Lab)
+                                </span>
+                            </button>
+                        </div>
                     </section>
                 </div>
 
@@ -839,3 +868,5 @@ export const MusicShowcase: React.FC<MusicShowcaseProps> = (props) => {
         </div>
     );
 };
+]]></content>
+</change>
