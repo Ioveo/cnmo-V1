@@ -302,7 +302,6 @@ export default {
             const payload = await request.json();
             let resultText = "";
 
-            // --- SYSTEM PROMPT & SCHEMA DEFINITIONS (Inlined for Worker independence) ---
             const ANALYSIS_SCHEMA = {
               type: "OBJECT",
               properties: {
@@ -348,7 +347,6 @@ export default {
 
             const SYSTEM_INSTRUCTION = `You are a world-class music producer and audio engineer. Analyze the audio or request and provide structured JSON data including BPM, Key, Genre, and a detailed breakdown of song sections (Intro, Verse, Chorus, etc.) with specific Suno.ai style prompts.`;
 
-            // 1. ANALYZE AUDIO
             if (url.pathname === '/api/ai/analyze-audio') {
                 const { base64Audio, mimeType } = payload;
                 const contents = [{
@@ -359,8 +357,6 @@ export default {
                 }];
                 resultText = await callGeminiRest(env, { contents }, SYSTEM_INSTRUCTION, ANALYSIS_SCHEMA);
             }
-            
-            // 2. ANALYZE METADATA (LINK)
             else if (url.pathname === '/api/ai/analyze-metadata') {
                  const { query } = payload;
                  const contents = [{
@@ -368,8 +364,6 @@ export default {
                  }];
                  resultText = await callGeminiRest(env, { contents }, SYSTEM_INSTRUCTION, ANALYSIS_SCHEMA);
             }
-
-            // 3. GENERATE CREATIVE
             else if (url.pathname === '/api/ai/generate-creative') {
                  const { request } = payload;
                  const contents = [{
@@ -377,8 +371,6 @@ export default {
                  }];
                  resultText = await callGeminiRest(env, { contents }, SYSTEM_INSTRUCTION, ANALYSIS_SCHEMA);
             }
-
-            // 4. GENERATE REMIX
             else if (url.pathname === '/api/ai/generate-remix') {
                  const { originalData } = payload;
                  const contents = [{
@@ -386,17 +378,12 @@ export default {
                  }];
                  resultText = await callGeminiRest(env, { contents }, SYSTEM_INSTRUCTION, ANALYSIS_SCHEMA);
             }
-            
-            // 5. GENERATE LYRICS (Simple Text)
             else if (url.pathname === '/api/ai/generate-lyrics') {
                 const { genre, mood, sectionName, sectionDesc } = payload;
                  const contents = [{
                     parts: [{ text: `Write lyrics for a ${sectionName} section. Genre: ${genre}. Mood: ${mood.join(',')}. Context: ${sectionDesc}. Only return the lyrics text.` }]
                  }];
-                 // No Schema for simple text
                  const text = await callGeminiRest(env, { contents }, "You are a professional lyricist.", null);
-                 
-                 // Deduct credit and return simple object
                  user.credits = user.credits - 1;
                  await env.SONIC_KV.put(`user:${userId}`, JSON.stringify(user));
                  return new Response(JSON.stringify({ text }), { headers: debugHeaders });
@@ -405,18 +392,14 @@ export default {
                 throw new Error("Unknown AI Endpoint");
             }
 
-            // DEDUCT CREDIT (For JSON endpoints)
             user.credits = user.credits - 1;
             await env.SONIC_KV.put(`user:${userId}`, JSON.stringify(user));
 
-            // Parse and Return
             try {
-                // Sanitize markdown code blocks if Gemini returns them
                 const cleanJson = resultText.replace(/```json/g, '').replace(/```/g, '').trim();
                 const json = JSON.parse(cleanJson);
                 return new Response(JSON.stringify(json), { headers: debugHeaders });
             } catch(e) {
-                // If parsing fails, return raw text wrapped in error or handle gracefully
                 console.error("JSON Parse Error", resultText);
                 throw new Error("AI returned invalid JSON format.");
             }
@@ -434,7 +417,6 @@ export default {
              if (request.method === 'POST') {
                  checkAdminAuth();
                  const body = await request.json();
-                 // Merge with existing to avoid overwriting unrelated fields if any
                  const existingRaw = await env.SONIC_KV.get('system_config');
                  const existing = existingRaw ? JSON.parse(existingRaw) : {};
                  const newConfig = { ...existing, ...body };
@@ -592,8 +574,11 @@ export default {
             const key = decodeURIComponent(url.pathname.replace('/api/file/', ''));
             if (!env.SONIC_BUCKET) return new Response("Bucket not bound", { status: 500, headers: corsHeaders });
 
+            const rangeHeader = request.headers.get('Range');
+            
+            // Allow R2 to handle range parsing natively if possible, or fetch full/range object
             const object = await env.SONIC_BUCKET.get(key, {
-                range: request.headers.get('Range'),
+                range: rangeHeader ? request.headers : undefined, 
                 onlyIf: request.headers,
             });
 
@@ -604,13 +589,31 @@ export default {
             const headers = new Headers();
             object.writeHttpMetadata(headers);
             headers.set('etag', object.httpEtag);
-            // Add CORS
+            
+            // Essential for Video
             headers.set('Access-Control-Allow-Origin', '*');
             headers.set('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
             headers.set('Access-Control-Expose-Headers', 'Content-Length, Content-Range, Accept-Ranges, ETag');
+            headers.set('Accept-Ranges', 'bytes');
+
+            // Handle 206 Partial Content manually if R2 doesn't set Content-Range automatically for binding
+            let status = 200;
             
-            // If range request, status is 206
-            const status = object.body ? (request.headers.get("Range") ? 206 : 200) : 304;
+            if (rangeHeader && object.range) {
+                status = 206;
+                // If R2 binding returned a range, we MUST set Content-Range
+                // object.range will be { offset: number, length: number }
+                // object.size is the total size
+                const start = object.range.offset;
+                const end = start + object.range.length - 1;
+                headers.set('Content-Range', `bytes ${start}-${end}/${object.size}`);
+                headers.set('Content-Length', object.range.length.toString());
+            } else if (object.body) {
+                 // Full content
+                 headers.set('Content-Length', object.size.toString());
+            } else {
+                status = 304; // Not Modified
+            }
 
             return new Response(object.body, {
                 headers,
