@@ -1,7 +1,3 @@
-<change>
-    <file>src/components/MusicShowcase.tsx</file>
-    <description>Restore Audio Workshop and Creative Lab buttons in Home view</description>
-    <content><![CDATA[
 // src/components/MusicShowcase.tsx
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
@@ -868,5 +864,3 @@ export const MusicShowcase: React.FC<MusicShowcaseProps> = (props) => {
         </div>
     );
 };
-]]></content>
-</change>
