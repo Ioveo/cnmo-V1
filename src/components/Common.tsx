@@ -1,4 +1,3 @@
-
 // src/components/Common.tsx
 import React, { useState, useEffect } from 'react';
 import { GalleryTrack } from '../types';
@@ -185,15 +184,17 @@ export const Navbar = ({ onNavigate, onAdmin, onSettings, currentView, transpare
                         </button>
                     </div>
                     
-                    {/* User Control Passed from Parent (Now handled in flex container) */}
+                    {/* User Control */}
                     <div className="flex items-center">
                          {userControl}
                     </div>
 
                     <div className="h-4 w-px bg-white/10 hidden md:block"></div>
 
+                    {/* Admin Button */}
                     <button onClick={onAdmin} className="w-8 h-8 flex items-center justify-center border border-white/10 hover:border-acid/50 text-slate-400 hover:text-acid transition-colors bg-black/50 backdrop-blur rounded" title="管理员面板">⚙</button>
-                    <button onClick={onSettings} className="w-8 h-8 flex items-center justify-center border border-white/10 hover:border-acid/50 text-slate-400 hover:text-acid transition-colors bg-black/50 backdrop-blur rounded" title="设置">🔧</button>
+                    
+                    {/* Removed Settings (Wrench) Button as requested */}
                     
                     {/* Mobile Menu Toggle */}
                     <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="xl:hidden w-8 h-8 flex items-center justify-center border border-white/10 text-white bg-black/50 backdrop-blur rounded">
