@@ -79,7 +79,7 @@ interface AdminPanelProps {
     onUpdateCategories: (d: any) => void;
     onUpdatePlaylists: (d: any) => void;
     onStopGlobalMusic: () => void;
-    onResetDemoData: () => void; // ADDED PROP
+    onResetDemoData: () => void; 
 }
 
 const AdminSidebarItem = ({ id, label, icon, activeTab, onClick }: any) => (
@@ -96,29 +96,38 @@ const TopList = ({
     title, 
     data, 
     items, 
-    type 
+    type,
+    onViewAll
 }: { 
     title: string, 
     data: Record<string, number>, 
     items: any[], 
-    type: 'track' | 'video' | 'article' 
+    type: 'track' | 'video' | 'article',
+    onViewAll: () => void
 }) => {
     // Sort and slice top 20
     const sorted = Object.entries(data || {})
         .sort(([,a], [,b]) => b - a)
         .slice(0, 20);
     
-    if (sorted.length === 0) return null;
+    if (sorted.length === 0) return (
+        <div className="bg-[#111]/80 backdrop-blur border border-white/10 p-6 rounded-2xl h-full flex flex-col items-center justify-center text-slate-500 text-xs">
+            {title} - 暂无数据
+        </div>
+    );
 
     const maxCount = sorted[0][1];
 
     return (
         <div className="bg-[#111]/80 backdrop-blur border border-white/10 p-6 rounded-2xl h-full flex flex-col">
-            <h4 className="text-sm font-bold text-white uppercase tracking-widest mb-6 flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full animate-pulse ${type === 'track' ? 'bg-lime-400' : type === 'video' ? 'bg-orange-400' : 'bg-cyan-400'}`}></div>
-                {title}
-            </h4>
-            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
+            <div className="flex justify-between items-center mb-6">
+                <h4 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full animate-pulse ${type === 'track' ? 'bg-lime-400' : type === 'video' ? 'bg-orange-400' : 'bg-cyan-400'}`}></div>
+                    {title}
+                </h4>
+                <button onClick={onViewAll} className="text-[10px] text-slate-500 hover:text-white uppercase font-bold tracking-wider">查看完整榜单 &rarr;</button>
+            </div>
+            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4 max-h-[400px]">
                 {sorted.map(([id, count], idx) => {
                     const item = items.find(i => i.id === id);
                     if (!item) return null;
@@ -150,8 +159,103 @@ const TopList = ({
     );
 };
 
+// --- Full Analytics Table Component ---
+const FullAnalyticsView = ({ title, items, stats, onBack }: { title: string, items: any[], stats: Record<string, number>, onBack: () => void }) => {
+    const sortedItems = [...items].sort((a, b) => (stats[b.id] || 0) - (stats[a.id] || 0));
+
+    return (
+        <div className="space-y-6 animate-fade-in">
+            <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                <span className="text-xs font-bold uppercase tracking-widest">返回仪表盘</span>
+            </button>
+            <h3 className="text-2xl font-display font-bold text-white">{title} - 完整数据</h3>
+            <div className="bg-[#111] border border-white/10 rounded-2xl overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs md:text-sm">
+                        <thead className="bg-white/5 text-slate-400 font-bold uppercase tracking-wider">
+                            <tr>
+                                <th className="p-4 w-16 text-center">Rank</th>
+                                <th className="p-4 w-20">Asset</th>
+                                <th className="p-4">Title</th>
+                                <th className="p-4">Author/Artist</th>
+                                <th className="p-4 text-right">Views/Plays</th>
+                                <th className="p-4 text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                            {sortedItems.map((item, idx) => {
+                                const count = stats[item.id] || 0;
+                                const isDormant = count === 0;
+                                return (
+                                    <tr key={item.id} className="hover:bg-white/5 transition-colors">
+                                        <td className="p-4 text-center font-mono text-slate-500">#{idx + 1}</td>
+                                        <td className="p-4">
+                                            <div className="w-10 h-10 rounded bg-black border border-white/10 overflow-hidden">
+                                                <img src={item.coverUrl} className="w-full h-full object-cover" />
+                                            </div>
+                                        </td>
+                                        <td className="p-4 font-bold text-white max-w-[200px] truncate" title={item.title}>{item.title}</td>
+                                        <td className="p-4 text-slate-400">{item.artist || item.author}</td>
+                                        <td className="p-4 text-right font-mono text-white">{count}</td>
+                                        <td className="p-4 text-center">
+                                            {isDormant ? (
+                                                <span className="px-2 py-1 bg-red-500/10 text-red-400 rounded text-[10px] font-bold uppercase">Dormant</span>
+                                            ) : (
+                                                <span className="px-2 py-1 bg-lime-500/10 text-lime-400 rounded text-[10px] font-bold uppercase">Active</span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- Stale Content Report ---
+const StaleContentReport = ({ items, stats, label }: { items: any[], stats: Record<string, number>, label: string }) => {
+    const staleItems = items.filter(i => !stats[i.id] || stats[i.id] === 0);
+    
+    if (staleItems.length === 0) return null;
+
+    return (
+        <div className="bg-[#111]/80 border border-red-500/20 rounded-2xl p-6">
+            <div className="flex justify-between items-center mb-4">
+                <h4 className="text-sm font-bold text-red-400 uppercase tracking-widest flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                    沉睡资产: {label} (Top 5)
+                </h4>
+                <span className="text-[10px] text-slate-500">{staleItems.length} items with 0 views</span>
+            </div>
+            <div className="space-y-3">
+                {staleItems.slice(0, 5).map(item => (
+                    <div key={item.id} className="flex items-center gap-3 p-2 bg-red-500/5 rounded-lg border border-red-500/10">
+                        <div className="w-8 h-8 rounded bg-black overflow-hidden shrink-0">
+                            <img src={item.coverUrl} className="w-full h-full object-cover opacity-50" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="text-xs font-bold text-slate-300 truncate">{item.title}</div>
+                            <div className="text-[9px] text-slate-600 truncate">ID: {item.id}</div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 const AdminPanel = React.memo((props: AdminPanelProps) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [dashboardView, setDashboardView] = useState<'overview' | 'music_full' | 'video_full' | 'article_full'>('overview');
+
+    // Reset view when tab changes
+    useEffect(() => {
+        setDashboardView('overview');
+    }, [props.activeTab]);
 
     return (
          <div className="fixed inset-0 z-[150] bg-[#050505] text-white flex flex-col md:flex-row animate-fade-in">
@@ -204,66 +308,97 @@ const AdminPanel = React.memo((props: AdminPanelProps) => {
                     <div>
                         {props.activeTab === 'dashboard' && (
                             <div className="space-y-8">
-                                {/* ASSET INVENTORY (NEW) */}
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                    {[
-                                        { label: "音乐库存", val: props.tracks.length, color: "text-lime-400", icon: "🎵" },
-                                        { label: "影视资源", val: props.videos.length, color: "text-orange-400", icon: "🎬" },
-                                        { label: "专栏文章", val: props.articles.length, color: "text-cyan-400", icon: "📝" },
-                                        { label: "画廊图片", val: props.gallery.length, color: "text-purple-400", icon: "🖼️" },
-                                    ].map((s,i) => (
-                                        <div key={i} className="bg-[#111]/80 border border-white/10 p-5 rounded-2xl flex flex-col justify-between h-32 hover:border-white/20 transition-colors">
-                                            <div className="flex justify-between items-start">
-                                                <span className="text-2xl">{s.icon}</span>
-                                                <span className={`text-4xl font-display font-black ${s.color}`}>{s.val}</span>
-                                            </div>
-                                            <span className="text-[10px] text-slate-500 uppercase font-mono tracking-widest text-right">{s.label}</span>
+                                {/* SUB-VIEW LOGIC */}
+                                {dashboardView === 'overview' ? (
+                                    <>
+                                        {/* ASSET INVENTORY */}
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                            {[
+                                                { label: "音乐库存", val: props.tracks.length, color: "text-lime-400", icon: "🎵" },
+                                                { label: "影视资源", val: props.videos.length, color: "text-orange-400", icon: "🎬" },
+                                                { label: "专栏文章", val: props.articles.length, color: "text-cyan-400", icon: "📝" },
+                                                { label: "画廊图片", val: props.gallery.length, color: "text-purple-400", icon: "🖼️" },
+                                            ].map((s,i) => (
+                                                <div key={i} className="bg-[#111]/80 border border-white/10 p-5 rounded-2xl flex flex-col justify-between h-32 hover:border-white/20 transition-colors">
+                                                    <div className="flex justify-between items-start">
+                                                        <span className="text-2xl">{s.icon}</span>
+                                                        <span className={`text-4xl font-display font-black ${s.color}`}>{s.val}</span>
+                                                    </div>
+                                                    <span className="text-[10px] text-slate-500 uppercase font-mono tracking-widest text-right">{s.label}</span>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
-                                </div>
 
-                                {/* TRAFFIC STATS */}
-                                <div className="bg-[#111]/80 backdrop-blur border border-white/10 p-6 rounded-2xl">
-                                    <h4 className="text-sm font-bold text-white uppercase tracking-widest mb-6 flex items-center gap-2">
-                                        <div className="w-2 h-2 bg-acid rounded-full animate-pulse"></div>
-                                        流量数据监控 (Overview)
-                                    </h4>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                        {[
-                                            { label: "全站访问", val: props.siteStats?.visits || 0, color: "text-white" },
-                                            { label: "歌曲播放", val: props.siteStats?.musicPlays || 0, color: "text-lime-400" },
-                                            { label: "视频播放", val: props.siteStats?.videoPlays || 0, color: "text-orange-400" },
-                                            { label: "文章阅读", val: props.siteStats?.articleViews || 0, color: "text-cyan-400" },
-                                        ].map((s,i) => (
-                                            <div key={i} className="flex flex-col">
-                                                <span className={`text-3xl font-display font-black ${s.color}`}>{s.val}</span>
-                                                <span className="text-[10px] text-slate-500 uppercase font-mono mt-1">{s.label}</span>
+                                        {/* TRAFFIC STATS */}
+                                        <div className="bg-[#111]/80 backdrop-blur border border-white/10 p-6 rounded-2xl">
+                                            <h4 className="text-sm font-bold text-white uppercase tracking-widest mb-6 flex items-center gap-2">
+                                                <div className="w-2 h-2 bg-acid rounded-full animate-pulse"></div>
+                                                流量数据监控 (Overview)
+                                            </h4>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                                {[
+                                                    { label: "全站访问", val: props.siteStats?.visits || 0, color: "text-white" },
+                                                    { label: "歌曲播放", val: props.siteStats?.musicPlays || 0, color: "text-lime-400" },
+                                                    { label: "视频播放", val: props.siteStats?.videoPlays || 0, color: "text-orange-400" },
+                                                    { label: "文章阅读", val: props.siteStats?.articleViews || 0, color: "text-cyan-400" },
+                                                ].map((s,i) => (
+                                                    <div key={i} className="flex flex-col">
+                                                        <span className={`text-3xl font-display font-black ${s.color}`}>{s.val}</span>
+                                                        <span className="text-[10px] text-slate-500 uppercase font-mono mt-1">{s.label}</span>
+                                                    </div>
+                                                ))}
                                             </div>
-                                        ))}
-                                    </div>
-                                </div>
+                                        </div>
 
-                                {/* DETAILED ANALYTICS (TOP 20) */}
-                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-[500px]">
-                                    <TopList 
-                                        title="热歌 TOP 20" 
-                                        data={props.siteStats?.trackPlays || {}} 
-                                        items={props.tracks} 
-                                        type="track" 
-                                    />
-                                    <TopList 
-                                        title="热门影视 TOP 20" 
-                                        data={props.siteStats?.videoPlayDetails || {}} 
-                                        items={props.videos} 
-                                        type="video" 
-                                    />
-                                    <TopList 
-                                        title="热门文章 TOP 20" 
-                                        data={props.siteStats?.articleViewDetails || {}} 
-                                        items={props.articles} 
-                                        type="article" 
-                                    />
-                                </div>
+                                        {/* DETAILED ANALYTICS (TOP 20) */}
+                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-[500px]">
+                                            <TopList 
+                                                title="热歌 TOP 20" 
+                                                data={props.siteStats?.trackPlays || {}} 
+                                                items={props.tracks} 
+                                                type="track"
+                                                onViewAll={() => setDashboardView('music_full')}
+                                            />
+                                            <TopList 
+                                                title="热门影视 TOP 20" 
+                                                data={props.siteStats?.videoPlayDetails || {}} 
+                                                items={props.videos} 
+                                                type="video" 
+                                                onViewAll={() => setDashboardView('video_full')}
+                                            />
+                                            <TopList 
+                                                title="热门文章 TOP 20" 
+                                                data={props.siteStats?.articleViewDetails || {}} 
+                                                items={props.articles} 
+                                                type="article" 
+                                                onViewAll={() => setDashboardView('article_full')}
+                                            />
+                                        </div>
+
+                                        {/* STALE CONTENT ALERTS (DORMANT ASSETS) */}
+                                        <div className="space-y-4">
+                                            <h4 className="text-sm font-bold text-white uppercase tracking-widest border-b border-white/10 pb-2">数据洞察 / 预警</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                <StaleContentReport items={props.tracks} stats={props.siteStats?.trackPlays || {}} label="Music" />
+                                                <StaleContentReport items={props.videos} stats={props.siteStats?.videoPlayDetails || {}} label="Video" />
+                                                <StaleContentReport items={props.articles} stats={props.siteStats?.articleViewDetails || {}} label="Article" />
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        {/* FULL ANALYTICS VIEWS */}
+                                        {dashboardView === 'music_full' && (
+                                            <FullAnalyticsView title="Music Library Analytics" items={props.tracks} stats={props.siteStats?.trackPlays || {}} onBack={() => setDashboardView('overview')} />
+                                        )}
+                                        {dashboardView === 'video_full' && (
+                                            <FullAnalyticsView title="Cinema Library Analytics" items={props.videos} stats={props.siteStats?.videoPlayDetails || {}} onBack={() => setDashboardView('overview')} />
+                                        )}
+                                        {dashboardView === 'article_full' && (
+                                            <FullAnalyticsView title="Editorial Analytics" items={props.articles} stats={props.siteStats?.articleViewDetails || {}} onBack={() => setDashboardView('overview')} />
+                                        )}
+                                    </>
+                                )}
                             </div>
                         )}
                         {props.activeTab === 'system_config' && <SystemConfigManager onResetDemoData={props.onResetDemoData} />}
