@@ -4,17 +4,9 @@ import React from 'react';
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onResetDemoData: () => void;
 }
 
-const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onResetDemoData }) => {
-  const handleReset = () => {
-      if (confirm("确定要重置并加载演示数据吗？这将覆盖当前的某些本地状态 (不会删除云端文件)。")) {
-          onResetDemoData();
-          onClose();
-      }
-  }
-
+const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
@@ -38,18 +30,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onResetD
                     NEXUS AI 功能现已由后端安全托管。请在 **管理员面板 &gt; 系统配置** 中设置 Gemini API Key 和邮件服务。
                 </p>
             </div>
-
-            <div className="pt-4 border-t border-white/10">
-                <button 
-                    onClick={handleReset}
-                    className="w-full py-3 bg-red-500/10 hover:bg-red-500 border border-red-500/30 text-red-500 hover:text-white font-bold uppercase tracking-wider rounded-xl transition-all text-xs"
-                >
-                    Initialize Demo Data (重置/加载演示数据)
-                </button>
-                <p className="text-[10px] text-slate-600 mt-2 text-center">
-                    如果页面空白或数据丢失，请点击此按钮恢复 30 条预设内容。
-                </p>
-            </div>
+            
+            <p className="text-xs text-slate-500 mt-4 text-center">
+                如需重置/加载演示数据，请前往 <span className="text-lime-400">管理员面板 &gt; 系统配置</span>。
+            </p>
         </div>
       </div>
     </div>

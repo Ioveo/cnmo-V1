@@ -363,7 +363,7 @@ function App() {
   return (
     <div className="bg-[#050505] min-h-screen text-slate-100 font-sans selection:bg-[#ccff00] selection:text-black">
         {showIntro && <CinematicIntro onComplete={() => setShowIntro(false)} />}
-        <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} onResetDemoData={handleResetDemoData} />
+        <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
         <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} onSuccess={(user) => setCurrentUser(user)} />
         
         {(status === AnalysisStatus.PROCESSING_AUDIO || status === AnalysisStatus.ANALYZING_AI || status === AnalysisStatus.CREATING_PLAN) && (
@@ -406,6 +406,7 @@ function App() {
                 onRefreshUser={setCurrentUser}
                 onNavigate={(v) => setView(v as any)}
                 onOpenSettings={() => setIsSettingsOpen(true)}
+                onResetDemoData={handleResetDemoData} // Pass handler
                 onAnalyze={(file) => {
                      const event = { target: { files: [file] } } as any;
                      handleFileAnalysis(event);

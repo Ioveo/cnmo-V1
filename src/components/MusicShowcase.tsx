@@ -50,6 +50,7 @@ interface MusicShowcaseProps {
   onUpdateCategories: (d: any) => void;
   onUpdatePlaylists?: (d: any) => void; 
   onRefreshUser: (u: User) => void;
+  onResetDemoData: () => void; // ADDED PROP
   
   onNavigate: (view: any) => void;
   onOpenSettings: () => void;
@@ -79,6 +80,7 @@ interface AdminPanelProps {
     onUpdateCategories: (d: any) => void;
     onUpdatePlaylists: (d: any) => void;
     onStopGlobalMusic: () => void;
+    onResetDemoData: () => void; // ADDED PROP
 }
 
 const AdminSidebarItem = ({ id, label, icon, activeTab, onClick }: any) => (
@@ -247,7 +249,7 @@ const AdminPanel = React.memo((props: AdminPanelProps) => {
                                 </div>
                             </div>
                         )}
-                        {props.activeTab === 'system_config' && <SystemConfigManager />}
+                        {props.activeTab === 'system_config' && <SystemConfigManager onResetDemoData={props.onResetDemoData} />}
                         {props.activeTab === 'user_manager' && <UserManager />}
                         {props.activeTab === 'site_config' && (
                             <SiteSettingsManager 
@@ -462,12 +464,12 @@ export const MusicShowcase: React.FC<MusicShowcaseProps> = (props) => {
                         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-transparent"></div>
                     </div>
 
-                    <div className="absolute bottom-0 left-0 w-full px-4 md:px-12 pb-24 md:pb-32 z-10 flex flex-col items-start gap-6 max-w-[95%] md:max-w-4xl">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
+                    <div className="absolute bottom-0 left-0 w-full px-4 md:px-12 pb-24 md:pb-32 z-10 flex flex-col items-start justify-end h-full max-w-[95%] md:max-w-4xl">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full border border-white/20 mb-4">
                             <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                             <span className="text-xs font-bold uppercase tracking-widest">全站首映</span>
                         </div>
-                        <h1 className="text-4xl md:text-7xl lg:text-9xl font-display font-black leading-none tracking-tighter drop-shadow-2xl mix-blend-overlay opacity-90 line-clamp-2">
+                        <h1 className="text-4xl md:text-7xl lg:text-9xl font-display font-black leading-none tracking-tighter drop-shadow-2xl mix-blend-overlay opacity-90 line-clamp-2 mb-4">
                             {heroVideo?.title || "NEXUS AUDIO"}
                         </h1>
                         
@@ -478,7 +480,7 @@ export const MusicShowcase: React.FC<MusicShowcaseProps> = (props) => {
                             </p>
                         )}
 
-                        <div className="flex items-center gap-4 mt-2 md:mt-4">
+                        <div className="flex items-center gap-4 mt-6">
                             <button onClick={() => { handleStopGlobalMusic(); props.onNavigate('video'); }} className="px-6 md:px-8 py-3 md:py-4 bg-white text-black font-bold uppercase tracking-widest rounded-xl hover:bg-acid hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] text-xs md:text-sm">
                                 立即观看
                             </button>
@@ -606,6 +608,7 @@ export const MusicShowcase: React.FC<MusicShowcaseProps> = (props) => {
                     onUpdateCategories={props.onUpdateCategories}
                     onUpdatePlaylists={props.onUpdatePlaylists || (() => {})} 
                     onStopGlobalMusic={handleStopGlobalMusic}
+                    onResetDemoData={props.onResetDemoData} // Pass it here
                 />
             ) : (
                 readingArticle ? (

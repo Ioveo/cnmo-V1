@@ -6,10 +6,10 @@ import { SiteConfig, SystemConfig } from '../types';
 import { storageService } from '../services/storageService';
 
 interface SystemConfigManagerProps {
-    // This component fetches its own sensitive config via authorized API
+    onResetDemoData?: () => void;
 }
 
-export const SystemConfigManager: React.FC<SystemConfigManagerProps> = () => {
+export const SystemConfigManager: React.FC<SystemConfigManagerProps> = ({ onResetDemoData }) => {
     const [config, setConfig] = useState<SystemConfig>({});
     const [loading, setLoading] = useState(false);
     
@@ -53,6 +53,12 @@ export const SystemConfigManager: React.FC<SystemConfigManagerProps> = () => {
             alert("网络错误");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleReset = () => {
+        if (confirm("确定要重置并加载演示数据吗？这将覆盖当前的某些本地状态 (不会删除云端文件)。")) {
+            if (onResetDemoData) onResetDemoData();
         }
     };
 
@@ -109,11 +115,28 @@ export const SystemConfigManager: React.FC<SystemConfigManagerProps> = () => {
                     </div>
                 </div>
 
-                <div className="pt-6 border-t border-white/5">
+                <div className="pt-6 border-t border-white/5 flex flex-col md:flex-row gap-4 items-center justify-between">
                     <button onClick={handleSave} disabled={loading} className="px-8 py-3 bg-white text-black font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg hover:bg-slate-200">
                         {loading ? 'Saving...' : '保存系统配置'}
                     </button>
                 </div>
+
+                {/* DANGER ZONE */}
+                <div className="pt-8 border-t border-white/10">
+                    <h4 className="text-sm font-bold text-red-500 uppercase tracking-widest mb-4">危险区域 (Danger Zone)</h4>
+                    <div className="bg-red-500/5 border border-red-500/20 p-4 rounded-xl flex items-center justify-between">
+                        <div>
+                            <h5 className="text-white font-bold text-sm">初始化演示数据</h5>
+                            <p className="text-slate-400 text-xs mt-1">如果页面空白或数据丢失，点击此按钮可恢复 30 条预设内容到本地状态。</p>
+                        </div>
+                        <button 
+                            onClick={handleReset}
+                            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-lg transition-colors"
+                        >
+                            执行重置
+                        </button>
+                    </div>
+                 </div>
             </div>
         </div>
     );
