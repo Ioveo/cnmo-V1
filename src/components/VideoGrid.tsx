@@ -26,21 +26,21 @@ const CATEGORY_ITEMS = [
 const SynchronizedPlayer = ({ video, onClose }: { video: Video, onClose: () => void }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
-    // Default to 'cover' for full-screen immersive experience (No black bars)
     const [objectFit, setObjectFit] = useState<'contain' | 'cover'>('cover');
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const vid = videoRef.current;
         const aud = audioRef.current;
         
-        if (!vid || !aud || !video.audioUrl) return;
+        if (!vid) return;
 
         // Sync Logic
-        const handlePlay = () => aud.play().catch(e => console.warn("Audio sync play blocked", e));
-        const handlePause = () => aud.pause();
-        const handleSeek = () => aud.currentTime = vid.currentTime;
-        const handleWaiting = () => aud.pause();
-        const handlePlaying = () => aud.play();
+        const handlePlay = () => aud?.play().catch(e => console.warn("Audio sync play blocked", e));
+        const handlePause = () => aud?.pause();
+        const handleSeek = () => { if(aud) aud.currentTime = vid.currentTime; };
+        const handleWaiting = () => aud?.pause();
+        const handlePlaying = () => aud?.play();
 
         vid.addEventListener('play', handlePlay);
         vid.addEventListener('pause', handlePause);
@@ -88,6 +88,15 @@ const SynchronizedPlayer = ({ video, onClose }: { video: Video, onClose: () => v
                 </button>
             </div>
             
+            {/* Error Message */}
+            {error && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-40">
+                    <span className="text-red-500 text-3xl mb-4">⚠️</span>
+                    <p className="text-white font-bold">{error}</p>
+                    <p className="text-slate-500 text-sm mt-2">Check console for details or verify file existence.</p>
+                </div>
+            )}
+
             {/* The Master Video */}
             <video 
                 ref={videoRef}
@@ -96,6 +105,10 @@ const SynchronizedPlayer = ({ video, onClose }: { video: Video, onClose: () => v
                 autoPlay={!video.audioUrl} // Only autoplay default if no external audio logic
                 muted={!!video.audioUrl} // Mute video if external audio present
                 className={`w-full h-full shadow-2xl transition-all duration-500 ${objectFit === 'cover' ? 'object-cover' : 'object-contain'}`} 
+                onError={(e) => {
+                    console.error("Video Error", e);
+                    setError("Unable to play video.");
+                }}
             />
 
             {/* The Slave Audio */}
