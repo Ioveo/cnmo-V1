@@ -1,7 +1,3 @@
-<change>
-    <file>worker.js</file>
-    <description>Add missing GET /api/file/:key endpoint to serve R2 files with Range support for video playback</description>
-    <content><![CDATA[
 // worker.js
 
 /**
@@ -623,5 +619,3 @@ export default {
     }
   },
 };
-]]></content>
-</change>
