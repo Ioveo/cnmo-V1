@@ -1,4 +1,3 @@
-
 // src/components/MusicShowcase.tsx
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
@@ -205,6 +204,24 @@ const AdminPanel = React.memo((props: AdminPanelProps) => {
                     <div>
                         {props.activeTab === 'dashboard' && (
                             <div className="space-y-8">
+                                {/* ASSET INVENTORY (NEW) */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                    {[
+                                        { label: "音乐库存", val: props.tracks.length, color: "text-lime-400", icon: "🎵" },
+                                        { label: "影视资源", val: props.videos.length, color: "text-orange-400", icon: "🎬" },
+                                        { label: "专栏文章", val: props.articles.length, color: "text-cyan-400", icon: "📝" },
+                                        { label: "画廊图片", val: props.gallery.length, color: "text-purple-400", icon: "🖼️" },
+                                    ].map((s,i) => (
+                                        <div key={i} className="bg-[#111]/80 border border-white/10 p-5 rounded-2xl flex flex-col justify-between h-32 hover:border-white/20 transition-colors">
+                                            <div className="flex justify-between items-start">
+                                                <span className="text-2xl">{s.icon}</span>
+                                                <span className={`text-4xl font-display font-black ${s.color}`}>{s.val}</span>
+                                            </div>
+                                            <span className="text-[10px] text-slate-500 uppercase font-mono tracking-widest text-right">{s.label}</span>
+                                        </div>
+                                    ))}
+                                </div>
+
                                 {/* TRAFFIC STATS */}
                                 <div className="bg-[#111]/80 backdrop-blur border border-white/10 p-6 rounded-2xl">
                                     <h4 className="text-sm font-bold text-white uppercase tracking-widest mb-6 flex items-center gap-2">
